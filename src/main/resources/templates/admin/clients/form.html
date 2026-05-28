@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+    <body>
+
+        <form th:action="@{/admin/clients}" method="post">
+
+            <button class="btn btn-primary me-1" type="submit">Enregistrer</button>
+            <a class="btn btn-danger" th:href="@{/admin/clients}">Annuler</a>
+
+            <input type="hidden" name="id" th:value="${client.id}" />
+
+            <label for="firstName">Prénom</label>
+            <input id="firstName" type="text" name="firstName" th:value="${client.firstName}" placeholder="prénom"/>
+
+            <label for="lastName">Nom</label>
+            <input id="lastName" type="text" name="lastName" th:value="${client.lastName}" placeholder="nom"/>
+
+            <label for="mail">Email</label>
+            <input id="mail" type="email" name="mail" autocomplete="off" th:value="${client.mail}" placeholder="Email"/>
+
+            <label for="phoneNumber">Téléphone</label>
+            <input id="phoneNumber" type="text" name="phoneNumber" th:value="${client.phoneNumber}" placeholder="Téléphone"/>
+
+            <label for="street">Adresse</label>
+            <input id="street" type="text" name="address.street" th:value="${client.address.street}" placeholder="Adresse"/>
+
+            <label for="postalCode">Code postal</label>
+            <input id="postalCode" type="text" name="address.postalCode" th:value="${client.address.postalCode}" placeholder="Code postal"/>
+
+            <label for="city">Ville</label>
+            <input id="city" type="text" name="address.city" th:value="${client.address.city}" placeholder="Ville"/>
+
+            <label for="note">Notes</label>
+            <input id="note" type="text" name="note" th:value="${client.note}" placeholder="Notes"/>
+
+        </form>
+    </body>
+</html>
