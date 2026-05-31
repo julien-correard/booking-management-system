@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-    <body>
 
+<head th:replace="~{layout :: header}">
+</head>
+<body>
         <form th:action="@{/admin/clients}" method="post">
 
             <button class="btn btn-primary me-1" type="submit">Enregistrer</button>
@@ -38,5 +36,5 @@
             <input id="note" type="text" name="note" th:value="${client.note}" placeholder="Notes"/>
 
         </form>
-    </body>
+</body>
 </html>

@@ -1,4 +1,4 @@
-package com.julien.booking.controller.admin;
+package com.julien.booking.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +8,6 @@ public class HomeController {
 
     @GetMapping("/")
     public String home() {
-        return "redirect:/admin/clients";
+        return "redirect:/admin/calendar";
     }
 }

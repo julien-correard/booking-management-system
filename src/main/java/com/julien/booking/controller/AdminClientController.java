@@ -1,4 +1,4 @@
-package com.julien.booking.controller.admin.clients;
+package com.julien.booking.controller;
 
 import com.julien.booking.model.Address;
 import com.julien.booking.model.Client;
@@ -18,9 +18,12 @@ public class AdminClientController {
 
     @GetMapping
     public String index(Model model) {
+
         model.addAttribute("clients", clientService.getAllClients());
+
         return "admin/clients/index";
     }
+
 
     @GetMapping("/nouveau")
     public String create(Model model) {
@@ -29,6 +32,7 @@ public class AdminClientController {
         client.setAddress(new Address());
 
         model.addAttribute("client", client);
+
         return "admin/clients/form";
     }
 

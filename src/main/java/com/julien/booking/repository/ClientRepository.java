@@ -1,4 +1,4 @@
-package com.julien.booking.controller.admin.repository;
+package com.julien.booking.repository;
 
 import com.julien.booking.model.Client;
 import org.springframework.data.jpa.repository.JpaRepository;

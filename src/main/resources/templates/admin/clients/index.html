@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+
+<head th:replace="~{layout :: header}">
+
 </head>
 <body>
-
 <a class="btn btn-primary"
    th:href="@{/admin/clients/nouveau}">
   Nouveau client
