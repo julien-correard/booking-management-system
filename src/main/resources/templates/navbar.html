@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+<body>
+
+<div th:fragment="navbar">
+    <nav class="navbar navbar-dark bg-dark px-3 shadow-sm">
+        <div class="container-fluid">
+
+            <span class="navbar-brand mb-0 h1">
+                📅 Booking App
+            </span>
+
+            <div class="d-flex gap-2">
+                <a class="btn btn-primary" th:href="@{/admin/clients}">Clients</a>
+                <a class="btn btn-primary" th:href="@{/admin/calendar}">Calendrier</a>
+            </div>
+
+        </div>
+    </nav>
+</div>
+
+</body>
+</html>

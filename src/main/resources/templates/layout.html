@@ -16,38 +16,9 @@
     -->
 </head>
 
-
-<body class="bg-light">
-
-<!-- ===================== -->
-<!-- HEADER GLOBAL -->
-<!-- ===================== -->
-<!--
-<nav class="navbar navbar-dark bg-dark px-3 shadow-sm">
-    <div class="container-fluid">
-
-        <span class="navbar-brand mb-0 h1">
-            📅 Booking App
-        </span>
-
-        <div class="d-flex gap-2">
-            <a class="btn btn-outline-light btn-sm" href="/calendar">Calendrier</a>
-            <a class="btn btn-outline-light btn-sm" href="/clients">Clients</a>
-            <a class="btn btn-outline-light btn-sm" href="/appointments">Rendez-vous</a>
-        </div>
-
-    </div>
-</nav>
--->
-<!-- ===================== -->
-<!-- CONTENU PAGE -->
-<!-- ===================== -->
-<main class="container mt-4">
-
-    <th:block th:replace="~{${view} :: content}"></th:block>
-
-</main>
-
+<div th:fragment="pageHeader">
+<div th:replace="~{navbar :: navbar}"></div>
+</div>
 <!-- ===================== -->
 <!-- SCRIPTS GLOBAUX -->
 <!-- ===================== -->
@@ -58,10 +29,6 @@
 <!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
 
-<!-- SCRIPTS PAGE -->
-<th:block th:if="${hasScript}"
-          th:replace="~{${view} :: pageScript}">
-</th:block>
 
 
 </body>
