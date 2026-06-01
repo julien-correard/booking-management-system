@@ -1,30 +1,147 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: header}">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head th:replace="~{layout :: header}"></head>
 
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.css" rel="stylesheet">
-</head>
 <body>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    let calendarConfig = null;
+
+    async function loadCalendarConfig() {
+        const res = await fetch('calendar/config');
+
+        return await res.json();
+    }
+
+    function createCalendar(el, cfg, onSelect) {
+        return new FullCalendar.Calendar(el, {
+            initialView: 'timeGridWeek',
+            slotMinTime: cfg.startTime,
+            slotMaxTime: cfg.endTime,
+            hiddenDays: [0],
+            selectable: true,
+            select: onSelect
+        });
+    }
+
+    let modalInstance = null;
+
+
+    document.addEventListener('DOMContentLoaded', async () => {
+
+        const calendarEl = document.getElementById('calendar');
+
+        const calendarConfig = await loadCalendarConfig();
+
+        const modal = createEventModal(calendarConfig);
+
+        const calendar = createCalendar(calendarEl, calendarConfig, (info) => {
+            modal.open(info);
+        });
+
+        calendar.render();
+    });
+
+    function createEventModal(config) {
+
+        const modalEl = document.getElementById('myModal');
+        const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        const selectStartEl = document.getElementById('startTime');
+        const selectEndEl = document.getElementById('endTime');
+
+        function createOption(time) {
+            const opt = document.createElement('option');
+            opt.value = time;
+            opt.textContent = time;
+            return opt;
+        }
+        function generateTimeOptions() {
+            const start = config.startTime.substring(0,5);
+            const end = config.endTime.substring(0,5);
+            const step = config.slotStepMinutes;
+
+            let [h, m] = start.split(':').map(Number);
+            const [endH, endM] = end.split(':').map(Number);
+
+            selectStartEl.innerHTML = '';
+            selectEndEl.innerHTML = '';
+
+            while (h < endH || (h === endH && m < endM)) {
+
+                const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+
+                selectStartEl.appendChild(createOption(time));
+                selectEndEl.appendChild(createOption(time));
+
+                m += step;
+                if (m >= 60) {
+                    h++;
+                    m -= 60;
+                }
+            }
+        }
+
+        function open(info) {
+            generateTimeOptions();
+
+            // pré-sélection basée sur FullCalendar
+            const start = info.start.toTimeString().substring(0,5);
+            selectStartEl.value = start;
+
+            const end = info.end.toTimeString().substring(0,5);
+            selectEndEl.value = end;
+
+            instance.show();
+        }
+
+        return {
+            open
+        };
+    }
+
+</script>
 
 <div th:replace="~{layout :: pageHeader}"></div>
 
 <div id="calendar"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+<div class="modal fade" id="myModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+            <div class="modal-header">
+                <h5 class="modal-title">Nouveau RDV</h5>
+            </div>
 
-        var calendar = new FullCalendar.Calendar(
-            document.getElementById('calendar'),
-            {
-                initialView: 'timeGridWeek'
-            }
-        );
+            <div class="modal-body">
+                <input id="title" placeholder="Titre">
 
-        calendar.render();
-    });
-</script>
+                <select id="client" name="clientId">
+                    <option value="">-- Choisir un client --</option>
+
+                    <option th:each="client : ${clients}"
+                            th:value="${client.id}"
+                            th:text="${client.lastName}">
+                    </option>
+                </select>
+                <select id="startTime" class="form-select"></select>
+                <select id="endTime" class="form-select"></select>
+            </div>
+
+            <div class="modal-footer">
+                <button onclick="submitModal()">Valider</button>
+                <button data-bs-dismiss="modal">Annuler</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 
 </body>
 </html>
