@@ -32,10 +32,6 @@ public class AdminCalendarViewController {
         return "admin/calendar/index";
     }
 
-    @PostMapping
-    public String post(Model model) {
 
-        return "admin/calendar";
-    }
 
 }

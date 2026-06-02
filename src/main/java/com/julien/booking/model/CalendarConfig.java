@@ -11,6 +11,7 @@ public class CalendarConfig {
     public CalendarConfig() {}
 
     public CalendarConfig(LocalTime startTime, LocalTime endTime, int slotStepMinutes) {
+
         this.startTime = startTime;
         this.endTime = endTime;
         this.slotStepMinutes = slotStepMinutes;

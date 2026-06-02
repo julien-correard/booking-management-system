@@ -2,10 +2,8 @@ package com.julien.booking.controller;
 
 import com.julien.booking.model.CalendarConfig;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalTime;
 
@@ -14,6 +12,7 @@ import java.time.LocalTime;
 @RequiredArgsConstructor
 
 public class AdminCalendarRestController {
+
     @GetMapping("/config")
     public CalendarConfig config() {
         return new CalendarConfig(
@@ -21,5 +20,11 @@ public class AdminCalendarRestController {
                 LocalTime.of(18, 0),
                 15
         );
+    }
+
+    @PostMapping
+    public String post(Model model) {
+
+        return "admin/calendar";
     }
 }

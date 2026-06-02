@@ -7,9 +7,47 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.20/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<div th:replace="~{layout :: pageHeader}"></div>
+
+<div id="calendar"></div>
+
+<div class="modal fade" id="myModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Nouveau RDV</h5>
+            </div>
+
+            <div class="modal-body">
+
+                <select id="client" name="clientId">
+                    <option value="">-- Choisir un client --</option>
+
+                    <option th:each="client : ${clients}"
+                            th:value="${client.id}"
+                            th:text="${client.lastName}">
+                    </option>
+                </select>
+                <select id="startTime" class="form-select"></select>
+                <select id="endTime" class="form-select"></select>
+
+                <input id="date" type="text" class="hidden">
+            </div>
+
+            <div class="modal-footer">
+                <button id="submitBtn">Valider</button>
+                <button data-bs-dismiss="modal">Annuler</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <script>
 
     let calendarConfig = null;
+    let modal = null;
 
     async function loadCalendarConfig() {
         const res = await fetch('calendar/config');
@@ -18,26 +56,28 @@
     }
 
     function createCalendar(el, cfg, onSelect) {
+
+        const duration = `00:${String(cfg.slotStepMinutes).padStart(2, '0')}:00`;
+
         return new FullCalendar.Calendar(el, {
+
             initialView: 'timeGridWeek',
             slotMinTime: cfg.startTime,
             slotMaxTime: cfg.endTime,
+            slotDuration: duration,
             hiddenDays: [0],
             selectable: true,
             select: onSelect
         });
     }
 
-    let modalInstance = null;
-
-
     document.addEventListener('DOMContentLoaded', async () => {
 
         const calendarEl = document.getElementById('calendar');
 
-        const calendarConfig = await loadCalendarConfig();
+        calendarConfig = await loadCalendarConfig();
 
-        const modal = createEventModal(calendarConfig);
+        modal = createEventModal(calendarConfig);
 
         const calendar = createCalendar(calendarEl, calendarConfig, (info) => {
             modal.open(info);
@@ -54,29 +94,62 @@
         const selectStartEl = document.getElementById('startTime');
         const selectEndEl = document.getElementById('endTime');
 
-        function createOption(time) {
-            const opt = document.createElement('option');
-            opt.value = time;
-            opt.textContent = time;
-            return opt;
+
+        const availableTimes = generateAvailableTimes(config);
+
+        function availableTimesToDay(availableTime, date){
+
+
+            const [hours, minutes] = availableTime.split(":").map(Number);
+
+            const result = new Date(date);
+            result.setHours(hours, minutes, 0, 0);
+
+            return result;
+
         }
-        function generateTimeOptions() {
-            const start = config.startTime.substring(0,5);
-            const end = config.endTime.substring(0,5);
+
+        function updateSelect() {
+
+            const start = new Date(selectStartEl.value);
+            const end = new Date(selectEndEl.value);
+
+            const availableTimesToday = availableTimes.map(date => availableTimesToDay(date, start));
+
+            renderSelect(selectStartEl, availableTimesToday, t => t < end);
+            renderSelect(selectEndEl, availableTimesToday, t => t > start);
+
+            selectStartEl.value = start;
+            selectEndEl.value = end;
+        }
+
+        function initSelect(start, end) {
+
+
+            const availableTimesToday = availableTimes.map(date => availableTimesToDay(date, start));
+
+            renderSelect(selectStartEl, availableTimesToday, t => t < end);
+            renderSelect(selectEndEl, availableTimesToday, t => t > start);
+
+        }
+
+        function renderSelect(selectEl, times, filterFn) {
+            selectEl.replaceChildren(
+                ...times
+                    .filter(filterFn)
+                    .map(createOption)
+            );
+        }
+
+        function generateAvailableTimes(config) {
+            const result = [];
+
+            let [h, m] = config.startTime.split(':').map(Number);
+            const [endH, endM] = config.endTime.split(':').map(Number);
             const step = config.slotStepMinutes;
 
-            let [h, m] = start.split(':').map(Number);
-            const [endH, endM] = end.split(':').map(Number);
-
-            selectStartEl.innerHTML = '';
-            selectEndEl.innerHTML = '';
-
-            while (h < endH || (h === endH && m < endM)) {
-
-                const time = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-
-                selectStartEl.appendChild(createOption(time));
-                selectEndEl.appendChild(createOption(time));
+            while (h < endH || (h === endH && m <= endM)) {
+                result.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
 
                 m += step;
                 if (m >= 60) {
@@ -84,64 +157,75 @@
                     m -= 60;
                 }
             }
+
+            return result;
         }
 
         function open(info) {
-            generateTimeOptions();
 
-            // pré-sélection basée sur FullCalendar
-            const start = info.start.toTimeString().substring(0,5);
+            const start = info.start;
+            const end = info.end;
+
+            initSelect(start, end);
+
             selectStartEl.value = start;
-
-            const end = info.end.toTimeString().substring(0,5);
             selectEndEl.value = end;
 
             instance.show();
         }
 
+        function submit(){
+
+            const selectClient = document.getElementById('client');
+
+            fetch('/api/events', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    startTime: selectStartEl.value,
+                    endTime: selectEndEl.value,
+                    clientId: selectClient.value,
+                })
+            });
+        }
+        function createOption(time) {
+            const opt = document.createElement('option');
+            opt.value = time;
+            opt.textContent = time.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            return opt;
+        }
+
+        function timeToInt(time) {
+            return Number(time.replace(':', ''));
+        }
+
+
+
         return {
-            open
+            open,
+            submit,
+            updateSelect
         };
     }
 
+    document.getElementById('submitBtn').addEventListener('click', () => {
+        modal.submit();
+    });
+
+    document.getElementById('startTime').addEventListener('change', () => {
+        modal.updateSelect();
+    });
+
+    document.getElementById('endTime').addEventListener('change', () => {
+        modal.updateSelect();
+    });
+
+
 </script>
-
-<div th:replace="~{layout :: pageHeader}"></div>
-
-<div id="calendar"></div>
-
-<div class="modal fade" id="myModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Nouveau RDV</h5>
-            </div>
-
-            <div class="modal-body">
-                <input id="title" placeholder="Titre">
-
-                <select id="client" name="clientId">
-                    <option value="">-- Choisir un client --</option>
-
-                    <option th:each="client : ${clients}"
-                            th:value="${client.id}"
-                            th:text="${client.lastName}">
-                    </option>
-                </select>
-                <select id="startTime" class="form-select"></select>
-                <select id="endTime" class="form-select"></select>
-            </div>
-
-            <div class="modal-footer">
-                <button onclick="submitModal()">Valider</button>
-                <button data-bs-dismiss="modal">Annuler</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
 </body>
 </html>
