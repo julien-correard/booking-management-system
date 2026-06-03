@@ -1,7 +1,9 @@
 package com.julien.booking.controller;
 
+import com.julien.booking.model.Appointment;
 import com.julien.booking.model.CalendarConfig;
 import com.julien.booking.model.Client;
+import com.julien.booking.service.AppointmentService;
 import com.julien.booking.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -21,6 +24,7 @@ import java.util.List;
 public class AdminCalendarViewController {
 
     private final ClientService clientService;
+    private final AppointmentService appointmentService;
 
     @GetMapping
     public String index(Model model) {

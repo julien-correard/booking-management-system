@@ -48,6 +48,7 @@
 
     let calendarConfig = null;
     let modal = null;
+    let calendar;
 
     async function loadCalendarConfig() {
         const res = await fetch('calendar/config');
@@ -60,6 +61,8 @@
         const duration = `00:${String(cfg.slotStepMinutes).padStart(2, '0')}:00`;
 
         return new FullCalendar.Calendar(el, {
+
+            events: '/admin/calendar/events',
 
             initialView: 'timeGridWeek',
             slotMinTime: cfg.startTime,
@@ -79,7 +82,7 @@
 
         modal = createEventModal(calendarConfig);
 
-        const calendar = createCalendar(calendarEl, calendarConfig, (info) => {
+        calendar = createCalendar(calendarEl, calendarConfig, (info) => {
             modal.open(info);
         });
 
@@ -119,8 +122,8 @@
             renderSelect(selectStartEl, availableTimesToday, t => t < end);
             renderSelect(selectEndEl, availableTimesToday, t => t > start);
 
-            selectStartEl.value = start;
-            selectEndEl.value = end;
+            selectStartEl.value = toLocalDateTime(start);
+            selectEndEl.value = toLocalDateTime(end);
         }
 
         function initSelect(start, end) {
@@ -168,17 +171,18 @@
 
             initSelect(start, end);
 
-            selectStartEl.value = start;
-            selectEndEl.value = end;
+            selectStartEl.value = toLocalDateTime(start);
+            selectEndEl.value = toLocalDateTime(end);
 
             instance.show();
         }
 
-        function submit(){
+        async function submit(){
 
             const selectClient = document.getElementById('client');
 
-            fetch('/api/events', {
+
+            const response = await fetch('/admin/calendar', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -189,10 +193,18 @@
                     clientId: selectClient.value,
                 })
             });
+
+            const event = await response.json();
+
+            calendar.addEvent(event);
+
+            instance.hide();
+
         }
+
         function createOption(time) {
             const opt = document.createElement('option');
-            opt.value = time;
+            opt.value = toLocalDateTime(time);
             opt.textContent = time.toLocaleTimeString('fr-FR', {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -200,11 +212,14 @@
             return opt;
         }
 
-        function timeToInt(time) {
-            return Number(time.replace(':', ''));
+        function toLocalDateTime(date) {
+            return date.getFullYear() + '-'
+                + String(date.getMonth() + 1).padStart(2, '0') + '-'
+                + String(date.getDate()).padStart(2, '0') + 'T'
+                + String(date.getHours()).padStart(2, '0') + ':'
+                + String(date.getMinutes()).padStart(2, '0') + ':'
+                + String(date.getSeconds()).padStart(2, '0');
         }
-
-
 
         return {
             open,
